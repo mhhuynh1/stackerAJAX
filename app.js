@@ -136,3 +136,4 @@ var showInspiration = function(query, resultNum) {
 	};
 	$(".search-results").html(html);
 };
+//
