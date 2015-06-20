@@ -1,5 +1,3 @@
-//test
-
 $(document).ready( function() {
 	$('.unanswered-getter').submit( function(event){
 		// zero out results if previous search has run
@@ -7,6 +5,10 @@ $(document).ready( function() {
 		// get the value of the tags the user submitted
 		var tags = $(this).find("input[name='tags']").val();
 		getUnanswered(tags);
+	});
+	$(".inspiration-getter").submit(function(){
+		var tags = $(this).find("input[name='answerers']").val();
+		getInspiration(tags);
 	});
 });
 
@@ -33,11 +35,9 @@ var showQuestion = function(question) {
 
 	// set some properties related to asker
 	var asker = result.find('.asker');
-	asker.html('<p>Name: <a target="_blank" href=http://stackoverflow.com/users/' + question.owner.user_id + ' >' +
-													question.owner.display_name +
-												'</a>' +
-							'</p>' +
- 							'<p>Reputation: ' + question.owner.reputation + '</p>'
+	asker.html('<p>Name: <a target="_blank" href=http://stackoverflow.com/users/'
+		+ question.owner.user_id + ' >' + question.owner.display_name + '</a>' +
+		'</p>' + '<p>Reputation: ' + question.owner.reputation + '</p>'
 	);
 
 	return result;
@@ -64,9 +64,9 @@ var getUnanswered = function(tags) {
 	
 	// the parameters we need to pass in our request to StackOverflow's API
 	var request = {tagged: tags,
-								site: 'stackoverflow',
-								order: 'desc',
-								sort: 'creation'};
+					site: 'stackoverflow',
+					order: 'desc',
+					sort: 'creation'};
 	
 	var result = $.ajax({
 		url: "http://api.stackexchange.com/2.2/questions/unanswered",
@@ -90,5 +90,49 @@ var getUnanswered = function(tags) {
 	});
 };
 
+var getInspiration = function(tags) {
+	
+	// the parameters we need to pass in our request to StackOverflow's API
+
+	var request = {page: 1,
+					site: 'stackoverflow',
+					pagesize: 10,
+					tag: tags};
+	
+	var result = $.ajax({
+		url: "http://api.stackexchange.com/2.2/tags/" + tags + 
+		"/top-answerers/all_time?",
+		data: request,
+		dataType: "jsonp",
+		type: "GET"
+		})
+	.done(function(result){
+		console.log(result);
+		showInspiration(result.items, result.items.length);
+
+	})
+	.fail(function(jqXHR, error, errorThrown){
+		var errorElem = showError(error);
+		$('.search-results').append(errorElem);
+	});
+};
+
+var showInspiration = function(query, resultNum) {
+	var html;
+	for (i=0; i<resultNum; i++){
+		console.log(query[i]);
+		html += 
 
 
+		"<dl class=\"result inspiration\">" + 
+			"<dt>Display Name</dt>" +
+				"<dd class=\"display-name\">" + query[i].user.display_name + "</dd>" +
+			"<dt>Link</dt>" +
+				"<dd class=\"profile-link\"><a href=\"" + query[i].user.link + "\"" + ">Profile Link</a></dd>" + 
+			"<dt>Reputation</dt>" +
+				"<dd class=\"reputation\">" + query[i].user.reputation + "</dd>"
+		"</dl>";
+
+	};
+	$(".search-results").html(html);
+};
